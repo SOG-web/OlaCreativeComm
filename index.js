@@ -52,16 +52,16 @@ bot.on("new_chat_members", (ctx) => {
         console.log(
           `Sent welcome message to ${
             newMember.username || newMember.first_name
-          }`
-        )
+          }`,
+        ),
       )
       .catch((err) =>
         console.error(
           `Failed to send welcome message to ${
             newMember.username || newMember.first_name
           }`,
-          err
-        )
+          err,
+        ),
       );
   });
 });
@@ -72,16 +72,16 @@ bot.start((ctx) => {
     .reply(welcomeMessage)
     .then(() =>
       console.log(
-        `Sent welcome message to ${ctx.from.username || ctx.from.first_name}`
-      )
+        `Sent welcome message to ${ctx.from.username || ctx.from.first_name}`,
+      ),
     )
     .catch((err) =>
       console.error(
         `Failed to send welcome message to ${
           ctx.from.username || ctx.from.first_name
         }`,
-        err
-      )
+        err,
+      ),
     );
 });
 
@@ -98,16 +98,16 @@ const sendConfirmationToAdmins = async (chatId, message) => {
           console.log(
             `Sent confirmation to ${
               admin.user.username || admin.user.first_name
-            }`
-          )
+            }`,
+          ),
         )
         .catch((err) =>
           console.error(
             `Failed to send confirmation to ${
               admin.user.username || admin.user.first_name
             }`,
-            err
-          )
+            err,
+          ),
         );
     });
   } catch (err) {
@@ -154,7 +154,7 @@ bot.on("document", async (ctx) => {
         fileIndex[fileName] = ctx.message.message_id; // Store the original message ID
         saveFileIndex(); // Save the updated file index to the file
         console.log(
-          `File "${fileName}" uploaded and indexed by @${uploaderUsername}.`
+          `File "${fileName}" uploaded and indexed by @${uploaderUsername}.`,
         );
 
         // Send confirmation message to all admins
@@ -167,7 +167,7 @@ bot.on("document", async (ctx) => {
         console.log(
           `User ${
             ctx.message.from.username || ctx.message.from.first_name
-          } is not an admin, ignoring file upload.`
+          } is not an admin, ignoring file upload.`,
         );
       }
     } catch (err) {
@@ -186,7 +186,7 @@ bot.use(async (ctx, next) => {
       // Check if the user is a member of the group
       const memberInfo = await bot.telegram.getChatMember(
         GROUP_CHAT_ID,
-        ctx.from.id
+        ctx.from.id,
       );
       if (
         memberInfo.status === "member" ||
@@ -209,11 +209,11 @@ bot.use(async (ctx, next) => {
 // Handle file search and link request in DMs
 bot.on("text", async (ctx) => {
   if (ctx.chat.type === "private") {
-    const inputText = ctx.message.text.toLowerCase();
+    const inputText = ctx.message.text;
     console.log(
       `User ${
         ctx.from.username || ctx.from.first_name
-      } sent a message: "${inputText}"`
+      } sent a message: "${inputText}"`,
     );
 
     // Check if the input is a URL
@@ -223,16 +223,13 @@ bot.on("text", async (ctx) => {
     if (isURL) {
       // If the user provides a URL
       const fileLink = inputText;
-      console.log(
-        `User ${
-          ctx.from.username || ctx.from.first_name
-        } provided link: "${fileLink}"`
-      );
+      const requesterName = ctx.from.username || ctx.from.first_name;
+      console.log(`User ${requesterName} provided link: "${fileLink}"`);
 
       ctx.reply("Thank you! Please check back in 24 hours.");
 
       // Notify all admins
-      const requestMessage = `New file request:\nFile Link: ${fileLink}`;
+      const requestMessage = `New file request from @${requesterName}:\nFile Link: ${fileLink}`;
       await sendConfirmationToAdmins(GROUP_CHAT_ID, requestMessage);
 
       // Track the user's request
@@ -246,16 +243,13 @@ bot.on("text", async (ctx) => {
     } else if (userStates[ctx.from.id] === "awaiting_link") {
       // If the user is expected to provide a link
       const fileLink = inputText;
-      console.log(
-        `User ${
-          ctx.from.username || ctx.from.first_name
-        } provided link: "${fileLink}"`
-      );
+      const requesterName = ctx.from.username || ctx.from.first_name;
+      console.log(`User ${requesterName} provided link: "${fileLink}"`);
 
       ctx.reply("Thank you! Please check back in 24 hours.");
 
       // Notify all admins
-      const requestMessage = `New file request:\nFile Name: ${
+      const requestMessage = `New file request from @${requesterName}:\nFile Name: ${
         userStates[ctx.from.id].fileName
       }\nFile Link: ${fileLink}`;
       await sendConfirmationToAdmins(GROUP_CHAT_ID, requestMessage);
@@ -271,22 +265,18 @@ bot.on("text", async (ctx) => {
     } else {
       // Check if the input text matches any file names
       const searchResults = Object.keys(fileIndex).filter((fileName) =>
-        fileName.includes(inputText)
+        fileName.includes(inputText.toLowerCase()),
       );
 
       if (searchResults.length > 0) {
-        ctx.reply(
-          `Found the following files matching "${inputText}":\n${searchResults.join(
-            "\n"
-          )}`
-        );
+        ctx.reply(`Found the following files:\n${searchResults.join("\n")}`);
         searchResults.forEach((fileName) => {
           const messageId = fileIndex[fileName];
           bot.telegram.forwardMessage(ctx.from.id, GROUP_CHAT_ID, messageId);
         });
       } else {
         ctx.reply(
-          "File not found. Please drop the link of the file you are looking for."
+          "File not found. Please drop the link of the file you are looking for.",
         );
         userStates[ctx.from.id] = {
           state: "awaiting_link",
