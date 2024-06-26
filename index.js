@@ -3,7 +3,7 @@ const { Telegraf } = require("telegraf");
 const fs = require("fs");
 
 const app = express();
-const bot = new Telegraf("7308693482:AAFFteMutTK2z65dxAkfvfSR1Qkncpm5or4");
+const bot = new Telegraf("7318847242:AAGmAlUCJAEPtPFD8RLfJYddsz3Bh0mDJbI");
 
 // File to persist file index
 const FILE_INDEX_PATH = "fileIndex.json";
