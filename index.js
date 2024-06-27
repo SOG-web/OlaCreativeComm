@@ -3,7 +3,8 @@ const { Telegraf } = require("telegraf");
 const fs = require("fs");
 
 const app = express();
-const bot = new Telegraf("7318847242:AAGmAlUCJAEPtPFD8RLfJYddsz3Bh0mDJbI");
+const bot = new Telegraf("7318847242:AAGmAlUCJAEPtPFD8RLfJYddsz3Bh0mDJbI
+");
 
 // File to persist file index
 const FILE_INDEX_PATH = "fileIndex.json";
@@ -115,19 +116,6 @@ const sendConfirmationToAdmins = async (chatId, message) => {
   }
 };
 
-// Function to notify user if their requested file is uploaded
-const notifyUserIfRequested = async (fileName) => {
-  if (userRequests[fileName]) {
-    const userId = userRequests[fileName].userId;
-    const originalMessageId = userRequests[fileName].messageId;
-    await bot.telegram.forwardMessage(userId, GROUP_CHAT_ID, originalMessageId);
-    console.log(`Notified user ${userId} about the file "${fileName}"`);
-    delete userRequests[fileName]; // Remove the request after notifying the user
-  } else {
-    console.log(`No user request found for file "${fileName}"`);
-  }
-};
-
 // Handle file upload within the group
 bot.on("document", async (ctx) => {
   console.log("Received document upload event.");
@@ -160,9 +148,6 @@ bot.on("document", async (ctx) => {
         // Send confirmation message to all admins
         const confirmationMessage = `File "${fileName}" has been saved and indexed by @${uploaderUsername}.`;
         await sendConfirmationToAdmins(ctx.chat.id, confirmationMessage);
-
-        // Notify the user if their requested file is uploaded
-        await notifyUserIfRequested(fileName);
       } else {
         console.log(
           `User ${
@@ -282,48 +267,16 @@ bot.on("text", async (ctx) => {
           state: "awaiting_link",
           fileName: inputText,
         };
+
+        // Track the user's request
+        userRequests[inputText] = {
+          userId: ctx.from.id,
+          messageId: ctx.message.message_id,
+        };
       }
     }
   }
 });
 
-// Function to check bot permissions
-const checkBotPermissions = async (chatId) => {
-  try {
-    const botInfo = await bot.telegram.getMe();
-    if (!botInfo) {
-      throw new Error("Bot info is not available yet.");
-    }
-    const botId = botInfo.id;
-    const memberInfo = await bot.telegram.getChatMember(chatId, botId);
-    const canDeleteMessages = memberInfo.can_delete_messages;
-    console.log(`Bot has permission to delete messages: ${canDeleteMessages}`);
-  } catch (err) {
-    console.error("Failed to get bot permissions:", err);
-  }
-};
-
-// Start Express server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-// Start the bot and check permissions after launch
-const startBot = async (retryCount = 0) => {
-  try {
-    await bot.launch();
-    console.log("Bot started");
-    await checkBotPermissions(GROUP_CHAT_ID);
-  } catch (err) {
-    console.error("Failed to start bot", err);
-    if (retryCount < 5) {
-      console.log(`Retrying to start bot... Attempt ${retryCount + 1}`);
-      setTimeout(() => startBot(retryCount + 1), 5000);
-    } else {
-      console.error("Max retry attempts reached. Could not start bot.");
-    }
-  }
-};
-
-startBot();
+// Start the bot
+bot.launch().then(() => console.log("Bot started successfully."));
