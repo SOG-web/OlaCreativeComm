@@ -21,7 +21,7 @@ const GROUP_CHAT_ID = "-1002233012911";
 const welcomeMessage = `Welcome to the group! Here is a guide to get you started:
 1. To find a file, send the file name directly to this bot.
 2. If the file is not found, you will be prompted to drop a link.
-3. An admin will be notified, and the file will be available within 24 hours.`;
+3. An admin will be notified, and the file will be available as soon as possible`;
 
 let fileIndex = {};
 if (fs.existsSync(FILE_INDEX_PATH)) {
@@ -213,7 +213,7 @@ bot.on("text", async (ctx) => {
       const requesterName = ctx.from.username || ctx.from.first_name;
       console.log(`User ${requesterName} provided link: "${fileLink}"`);
 
-      ctx.reply("Thank you! Please check back in 24 hours.");
+      ctx.reply("Request recieved, Please check back soon");
 
       const requestMessage = `New file request from @${requesterName}:\nFile Name: ${
         userStates[ctx.from.id].fileName
