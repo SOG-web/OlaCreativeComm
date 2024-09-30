@@ -59,40 +59,40 @@ bot.on("new_chat_members", (ctx) => {
   ctx.message.new_chat_members.forEach((newMember) => {
     bot.telegram
       .sendMessage(newMember.id, welcomeMessage)
-      .then(() =>
+      .then(() => {
         //console.log(
           //`Sent welcome message to ${
             //newMember.username || newMember.first_name
           //}`,
         //),
-      )
-      .catch((err) =>
+      })
+      .catch((err) => {
         //console.error(
           //`Failed to send welcome message to ${
            // newMember.username || newMember.first_name
           //}`,
          // err,
         //),
-      );
+      });
   });
 });
 
 bot.start((ctx) => {
   ctx
     .reply(welcomeMessage)
-    .then(() =>
+    .then(() => {
       // console.log(
       //   `Sent welcome message to ${ctx.from.username || ctx.from.first_name}`,
       // ),
-    )
-    .catch((err) =>
+    })
+    .catch((err) => {
       // console.error(
       //   `Failed to send welcome message to ${
       //     ctx.from.username || ctx.from.first_name
       //   }`,
       //   err,
       // ),
-    );
+    });
 });
 
 const sendConfirmationToAdmins = async (chatId, message) => {
@@ -103,21 +103,21 @@ const sendConfirmationToAdmins = async (chatId, message) => {
     admins.forEach((admin) => {
       bot.telegram
         .sendMessage(admin.user.id, message)
-        .then(() =>
+        .then(() => {
           // console.log(
           //   `Sent confirmation to ${
           //     admin.user.username || admin.user.first_name
           //   }`,
           // ),
-        )
-        .catch((err) =>
-          // console.error(
+        })
+        .catch((err) => {
+           // console.error(
           //   `Failed to send confirmation to ${
           //     admin.user.username || admin.user.first_name
           //   }`,
           //   err,
           // ),
-        );
+        });
     });
   } catch (err) {
     //console.error("Failed to get chat administrators:", err);
