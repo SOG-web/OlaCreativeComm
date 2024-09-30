@@ -6,6 +6,18 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
+const isWithinAllowedTime = () => {
+  const currentDate = new Date();
+  const currentHour = currentDate.getUTCHours() + 1; // Adjust for GMT+1
+
+  // Define the allowed hours (10 AM to 4 PM GMT+1)
+  const allowedStartHour = 10;  // 10 AM GMT+1
+  const allowedEndHour = 16;    // 4 PM GMT+1
+
+  // Check if current time is within the allowed range
+  return currentHour >= allowedStartHour && currentHour < allowedEndHour;
+};
+
 const express = require("express");
 const { Telegraf } = require("telegraf");
 const fs = require("fs");
@@ -52,7 +64,7 @@ bot.on("new_chat_members", (ctx) => {
           //`Sent welcome message to ${
             //newMember.username || newMember.first_name
           //}`,
-        ),
+        //),
       )
       .catch((err) =>
         //console.error(
@@ -193,7 +205,7 @@ bot.on("text", async (ctx) => {
     const isURL = urlPattern.test(inputText);
 
     if (isURL) {
-      
+      if (isWithinAllowedTime()) {
       const fileLink = inputText;
       const requesterName = ctx.from.username || ctx.from.first_name;
       //console.log(`User ${requesterName} provided link: "${fileLink}"`);
@@ -209,6 +221,9 @@ bot.on("text", async (ctx) => {
       };
 
       delete userStates[ctx.from.id];
+      } else {
+        ctx.reply("Link submissions are only allowed between 10 AM and 4 PM GMT+1.");
+      }
     } else if (userStates[ctx.from.id] === "awaiting_link") {
       const fileLink = inputText;
       const requesterName = ctx.from.username || ctx.from.first_name;
